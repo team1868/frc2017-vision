@@ -47,44 +47,44 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = "/home/bili/Desktop/Robotics/FIRST Steamworks 2017/PegDetection"
+CMAKE_SOURCE_DIR = "/home/bili/Desktop/Robotics/FIRST Steamworks 2017/frc2017-vision/PegDetection"
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = "/home/bili/Desktop/Robotics/FIRST Steamworks 2017/PegDetection/build"
+CMAKE_BINARY_DIR = "/home/bili/Desktop/Robotics/FIRST Steamworks 2017/frc2017-vision/PegDetection/build"
 
 #=============================================================================
-# Target rules for target CMakeFiles/detectPeg.dir
+# Target rules for target CMakeFiles/pegDetect.dir
 
 # All Build rule for target.
-CMakeFiles/detectPeg.dir/all:
-	$(MAKE) -f CMakeFiles/detectPeg.dir/build.make CMakeFiles/detectPeg.dir/depend
-	$(MAKE) -f CMakeFiles/detectPeg.dir/build.make CMakeFiles/detectPeg.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report "/home/bili/Desktop/Robotics/FIRST Steamworks 2017/PegDetection/build/CMakeFiles"  1
-	@echo "Built target detectPeg"
-.PHONY : CMakeFiles/detectPeg.dir/all
+CMakeFiles/pegDetect.dir/all:
+	$(MAKE) -f CMakeFiles/pegDetect.dir/build.make CMakeFiles/pegDetect.dir/depend
+	$(MAKE) -f CMakeFiles/pegDetect.dir/build.make CMakeFiles/pegDetect.dir/build
+	$(CMAKE_COMMAND) -E cmake_progress_report "/home/bili/Desktop/Robotics/FIRST Steamworks 2017/frc2017-vision/PegDetection/build/CMakeFiles"  1
+	@echo "Built target pegDetect"
+.PHONY : CMakeFiles/pegDetect.dir/all
 
 # Include target in all.
-all: CMakeFiles/detectPeg.dir/all
+all: CMakeFiles/pegDetect.dir/all
 .PHONY : all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/detectPeg.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start "/home/bili/Desktop/Robotics/FIRST Steamworks 2017/PegDetection/build/CMakeFiles" 1
-	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/detectPeg.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start "/home/bili/Desktop/Robotics/FIRST Steamworks 2017/PegDetection/build/CMakeFiles" 0
-.PHONY : CMakeFiles/detectPeg.dir/rule
+CMakeFiles/pegDetect.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start "/home/bili/Desktop/Robotics/FIRST Steamworks 2017/frc2017-vision/PegDetection/build/CMakeFiles" 1
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/pegDetect.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start "/home/bili/Desktop/Robotics/FIRST Steamworks 2017/frc2017-vision/PegDetection/build/CMakeFiles" 0
+.PHONY : CMakeFiles/pegDetect.dir/rule
 
 # Convenience name for target.
-detectPeg: CMakeFiles/detectPeg.dir/rule
-.PHONY : detectPeg
+pegDetect: CMakeFiles/pegDetect.dir/rule
+.PHONY : pegDetect
 
 # clean rule for target.
-CMakeFiles/detectPeg.dir/clean:
-	$(MAKE) -f CMakeFiles/detectPeg.dir/build.make CMakeFiles/detectPeg.dir/clean
-.PHONY : CMakeFiles/detectPeg.dir/clean
+CMakeFiles/pegDetect.dir/clean:
+	$(MAKE) -f CMakeFiles/pegDetect.dir/build.make CMakeFiles/pegDetect.dir/clean
+.PHONY : CMakeFiles/pegDetect.dir/clean
 
 # clean rule for target.
-clean: CMakeFiles/detectPeg.dir/clean
+clean: CMakeFiles/pegDetect.dir/clean
 .PHONY : clean
 
 #=============================================================================

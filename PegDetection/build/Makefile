@@ -39,10 +39,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = "/home/bili/Desktop/Robotics/FIRST Steamworks 2017/PegDetection"
+CMAKE_SOURCE_DIR = "/home/bili/Desktop/Robotics/FIRST Steamworks 2017/frc2017-vision/PegDetection"
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = "/home/bili/Desktop/Robotics/FIRST Steamworks 2017/PegDetection/build"
+CMAKE_BINARY_DIR = "/home/bili/Desktop/Robotics/FIRST Steamworks 2017/frc2017-vision/PegDetection/build"
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -69,9 +69,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start "/home/bili/Desktop/Robotics/FIRST Steamworks 2017/PegDetection/build/CMakeFiles" "/home/bili/Desktop/Robotics/FIRST Steamworks 2017/PegDetection/build/CMakeFiles/progress.marks"
+	$(CMAKE_COMMAND) -E cmake_progress_start "/home/bili/Desktop/Robotics/FIRST Steamworks 2017/frc2017-vision/PegDetection/build/CMakeFiles" "/home/bili/Desktop/Robotics/FIRST Steamworks 2017/frc2017-vision/PegDetection/build/CMakeFiles/progress.marks"
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start "/home/bili/Desktop/Robotics/FIRST Steamworks 2017/PegDetection/build/CMakeFiles" 0
+	$(CMAKE_COMMAND) -E cmake_progress_start "/home/bili/Desktop/Robotics/FIRST Steamworks 2017/frc2017-vision/PegDetection/build/CMakeFiles" 0
 .PHONY : all
 
 # The main clean target
@@ -99,41 +99,41 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named detectPeg
+# Target rules for targets named pegDetect
 
 # Build rule for target.
-detectPeg: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 detectPeg
-.PHONY : detectPeg
+pegDetect: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 pegDetect
+.PHONY : pegDetect
 
 # fast build rule for target.
-detectPeg/fast:
-	$(MAKE) -f CMakeFiles/detectPeg.dir/build.make CMakeFiles/detectPeg.dir/build
-.PHONY : detectPeg/fast
+pegDetect/fast:
+	$(MAKE) -f CMakeFiles/pegDetect.dir/build.make CMakeFiles/pegDetect.dir/build
+.PHONY : pegDetect/fast
 
-detectPeg.o: detectPeg.cpp.o
-.PHONY : detectPeg.o
+pegDetect.o: pegDetect.cpp.o
+.PHONY : pegDetect.o
 
 # target to build an object file
-detectPeg.cpp.o:
-	$(MAKE) -f CMakeFiles/detectPeg.dir/build.make CMakeFiles/detectPeg.dir/detectPeg.cpp.o
-.PHONY : detectPeg.cpp.o
+pegDetect.cpp.o:
+	$(MAKE) -f CMakeFiles/pegDetect.dir/build.make CMakeFiles/pegDetect.dir/pegDetect.cpp.o
+.PHONY : pegDetect.cpp.o
 
-detectPeg.i: detectPeg.cpp.i
-.PHONY : detectPeg.i
+pegDetect.i: pegDetect.cpp.i
+.PHONY : pegDetect.i
 
 # target to preprocess a source file
-detectPeg.cpp.i:
-	$(MAKE) -f CMakeFiles/detectPeg.dir/build.make CMakeFiles/detectPeg.dir/detectPeg.cpp.i
-.PHONY : detectPeg.cpp.i
+pegDetect.cpp.i:
+	$(MAKE) -f CMakeFiles/pegDetect.dir/build.make CMakeFiles/pegDetect.dir/pegDetect.cpp.i
+.PHONY : pegDetect.cpp.i
 
-detectPeg.s: detectPeg.cpp.s
-.PHONY : detectPeg.s
+pegDetect.s: pegDetect.cpp.s
+.PHONY : pegDetect.s
 
 # target to generate assembly for a file
-detectPeg.cpp.s:
-	$(MAKE) -f CMakeFiles/detectPeg.dir/build.make CMakeFiles/detectPeg.dir/detectPeg.cpp.s
-.PHONY : detectPeg.cpp.s
+pegDetect.cpp.s:
+	$(MAKE) -f CMakeFiles/pegDetect.dir/build.make CMakeFiles/pegDetect.dir/pegDetect.cpp.s
+.PHONY : pegDetect.cpp.s
 
 # Help Target
 help:
@@ -141,12 +141,12 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... detectPeg"
 	@echo "... edit_cache"
+	@echo "... pegDetect"
 	@echo "... rebuild_cache"
-	@echo "... detectPeg.o"
-	@echo "... detectPeg.i"
-	@echo "... detectPeg.s"
+	@echo "... pegDetect.o"
+	@echo "... pegDetect.i"
+	@echo "... pegDetect.s"
 .PHONY : help
 
 

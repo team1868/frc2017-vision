@@ -1,4 +1,4 @@
-# Install script for directory: /home/bili/Desktop/Robotics/FIRST Steamworks 2017/PegDetection
+# Install script for directory: /home/bili/Desktop/Robotics/FIRST Steamworks 2017/frc2017-vision/PegDetection
 
 # Set the install prefix
 IF(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -38,7 +38,7 @@ ELSE(CMAKE_INSTALL_COMPONENT)
   SET(CMAKE_INSTALL_MANIFEST "install_manifest.txt")
 ENDIF(CMAKE_INSTALL_COMPONENT)
 
-FILE(WRITE "/home/bili/Desktop/Robotics/FIRST Steamworks 2017/PegDetection/build/${CMAKE_INSTALL_MANIFEST}" "")
+FILE(WRITE "/home/bili/Desktop/Robotics/FIRST Steamworks 2017/frc2017-vision/PegDetection/build/${CMAKE_INSTALL_MANIFEST}" "")
 FOREACH(file ${CMAKE_INSTALL_MANIFEST_FILES})
-  FILE(APPEND "/home/bili/Desktop/Robotics/FIRST Steamworks 2017/PegDetection/build/${CMAKE_INSTALL_MANIFEST}" "${file}\n")
+  FILE(APPEND "/home/bili/Desktop/Robotics/FIRST Steamworks 2017/frc2017-vision/PegDetection/build/${CMAKE_INSTALL_MANIFEST}" "${file}\n")
 ENDFOREACH(file)
