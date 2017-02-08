@@ -1,0 +1,28 @@
+#!/bin/sh
+# $Id: init,v 1.3 2004/03/16 01:43:45 zal Exp $
+#
+# Script to remove stale screen named pipes on bootup.
+#
+
+### BEGIN INIT INFO
+# Provides:          screen-cleanup
+# Required-Start:    $remote_fs
+# Required-Stop:     $remote_fs
+# Default-Start:     S
+# Default-Stop:
+# Short-Description: screen sessions cleaning
+# Description: Cleans up the screen session directory and fixes its
+#  permissions if needed.
+### END INIT INFO
+
+#pid = `ps -ef | grep pegDetect | grep -v grep | awk '{print $2}'`
+
+case "$1" in
+start)
+/home/ubuntu/SpaceCookies/2017-vision/src/PegDetect/build/PegDetect>/home/ubuntu/SpaceCookies/2017-vision/src/logStuff.txt&
+   ;;
+stop|restart|reload|force-reload)
+    ;;
+esac
+
+exit 0
