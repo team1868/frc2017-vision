@@ -1,25 +1,35 @@
-//#include "opencv2/objdetect.hpp"
 //#include "opencv2/imgproc.hpp"
 //#include "opencv2/highgui.hpp"
 //#include "opencv2/videoio.hpp"
+#include "zhelpers.hpp"
+#include <zmq.hpp>
+#include <string>
+#include <chrono>
+#include <thread>
+#include <string>
 #include <iostream>
 #include <vector>
 #include <opencv2/opencv.hpp>
 #include <math.h>
 
 using namespace cv;
+using namespace zmq;
 using namespace std;
 
 /* IMPORTANT IMPORTANT
-   RUN v4l2-ctl -d /dev/video1 -c exposure_auto=1 -c exposure_auto_priority=0 -c exposure_absolute=10
+   RUN v4l2-ctl -d /dev/video1 -c exposure_auto=1 -c exposure_absolute=10
    RUN v4l2-ctl -d /dev/video1 -c white_balance_temperature_auto=0
 */
 #define PI 3.14159265
 
 //FIELD SPECS
-const int DIST_BETWEEN_GOAL_TARGETS = 7; //inches
-const int TOP_TARGET_HEIGHT = 88; //inches, top of tape
-const int BOTTOM_TARGET_HEIGHT = 78; //inches, bottom of tape
+const double DIST_BETWEEN_BOILER_TARGETS = 10; //inches, vertical
+const double TOP_BOILER_TARGET_HEIGHT = 88; //inches, top of tape
+const double BOTTOM_BOILER_TARGET_HEIGHT = 78; //inches, bottom of tape
+
+const double DIST_BETWEEN_PEG_TARGETS = 10.25; //inches, horizontal, outside to outside
+const double TOP_PEG_TARGET_HEIGHT = 15.75; //inches, top of tape
+const double BOTTOM_PEG_TARGET_HEIGHT = 10.75; //inches, bottom of tape
 
 //CAMERA SPECS
 const double DIAGONAL_FOV = 68.5; //degrees
@@ -45,25 +55,32 @@ const int UPPER_GREEN_SAT = 255;
 const int UPPER_GREEN_VAL = 255;
 
 const int MIN_AREA = 2500;
-RNG rng(12345); 
+RNG rng(12345);
 
 int main()
 {
   cout << "Built with OpenCV B-) " << CV_VERSION << endl;
   Mat image;
   VideoCapture capture(1);
-  //capture.set(CV_CAP_PROP_EXPOSURE, 0.3);
   capture.set(CV_CAP_PROP_SATURATION, 0.5);
-  //capture.set(CV_CAP_PROP_BRIGHTNESS, 0.001); 
-  //capture.set(CV_CAP_PROP_CONTRAST, 0.5);
+  cout << "gr fps " << capture.get(CV_CAP_PROP_FPS);
 
   if (!capture.isOpened())
   {
-    cout << "!!! Failed to open camera darn :((((( \n";
+    std::cout << "!!! Failed to open camera darn :((((( \n";
     return -1;
   }
 
   Mat frame;
+  //  Prepare our context and publisher
+  context_t context(1);
+  socket_t publisher(context, ZMQ_PUB);
+
+  // cout << publisher.setsockopt(ZMQ_SNDHWM, 1) << endl;
+  // cout << publisher.setsockopt(ZMQ_SNDHWM, 1) << endl;
+  //int rc = zmq_setsockopt (publisher, ZMQ_SNDHWM, 1);
+  //assert (rc == 0);
+  publisher.bind("tcp://*:5563");
 
   for(;;) {
     if (!capture.read(frame)) {
@@ -76,7 +93,9 @@ int main()
     cvtColor(frame, hsvImage, COLOR_BGR2HSV);
 
     Mat greenRange;
-    inRange(hsvImage, Scalar(LOWER_GREEN_HUE, LOWER_GREEN_SAT, LOWER_GREEN_VAL), Scalar(UPPER_GREEN_HUE, UPPER_GREEN_SAT, UPPER_GREEN_VAL), greenRange);
+    inRange(hsvImage, Scalar(LOWER_GREEN_HUE, LOWER_GREEN_SAT, LOWER_GREEN_VAL),
+                      Scalar(UPPER_GREEN_HUE, UPPER_GREEN_SAT, UPPER_GREEN_VAL),
+                      greenRange);
 
     Mat grayImage;
     cvtColor(frame, grayImage, COLOR_BGR2GRAY);
@@ -95,19 +114,19 @@ int main()
     for(int c = 0; c < contours.size(); c++) {
       Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
       if(contourArea(contours[c]) < MIN_AREA) {
-        contours.erase(contours.begin() + c);
+        continue;
       }
       drawContours( origImage, contours, c, color, 2, 8, hierarchy, 0, Point() );
       approxPolyDP( Mat(contours[c]), contours_poly[c], 3, true );
       boundRect[c] = boundingRect( Mat(contours_poly[c]) );
-      double aspectRatio = (boundRect[c].br().x - boundRect[c].tl().x)/(boundRect[c].br().y - boundRect[c].tl().y);
-      if(aspectRatio < 1.1 || aspectRatio > 1.7) {
-        continue;
-      }
       
       rectangle (origImage, boundRect[c].tl(), boundRect[c].br(), color, 2, 8, 0);
     }
-//DO A THING FOR ASPECT RATIO
+    if(boundRect.size() < 2) {
+      cout << "no rectangles :(" << endl;
+      continue;
+    }
+
     if(boundRect[0].tl().x < boundRect[1].tl().x) {
       leftContour = 0;
       rightContour = 1;
@@ -123,10 +142,10 @@ int main()
     cout << "yawwww " << angleToMoveApprox << endl;
     cout << "pixel distance for centers " << centerOfTargets - CENTER_LINE << endl;
 
-    double angleToMoveAgain;
-    angleToMoveAgain = atan((centerOfTargets - CENTER_LINE) / FOCAL_LENGTH);
-    angleToMoveAgain = angleToMoveAgain * 180 / PI; //CONVERT TO DEGREEZ
-    cout << "suh " << angleToMoveAgain << endl;
+//    double angleToMoveAgain;
+//    angleToMoveAgain = atan((centerOfTargets - CENTER_LINE) / FOCAL_LENGTH);
+//    angleToMoveAgain = angleToMoveAgain * 180 / PI; //CONVERT TO DEGREEZ
+//    cout << "suh " << angleToMoveAgain << endl;
 
     Rect rectForCalc;
     if(boundRect[leftContour].height > boundRect[rightContour].height) {
@@ -138,15 +157,23 @@ int main()
     double distanceToPeg;
     double y = rectForCalc.br().y + rectForCalc.height / 2.0;
     y = -(2 * y / PIXEL_HEIGHT - 1);
-//change top target height to pegs height
-    distanceToPeg = (TOP_TARGET_HEIGHT - CAMERA_HEIGHT) / tan(y * VERTICAL_FOV / 2.0 + CAMERA_ANGLE * PI / 180);
+    distanceToPeg = (TOP_PEG_TARGET_HEIGHT - CAMERA_HEIGHT) / tan(y * VERTICAL_FOV / 2.0 + CAMERA_ANGLE * PI / 180);
     cout << "hallo distanc " << distanceToPeg << endl;
 
-//    imshow(WINDOW_NAME, origImage);
-//    imshow("suh", frame);
-//    imshow("yooo green", greenRange);
+    imshow(WINDOW_NAME, origImage);
+    //imshow("suh", frame);
+    //imshow("yooo green", greenRange);
 //    imshow("yooo gray", grayImage);
-// CHECK FOR RELEASE CAPTURE
+
+    //  Write two messages, each with an envelope and content
+    s_sendmore (publisher, "A");
+    s_send (publisher, "We don't want to see this");
+    s_sendmore (publisher, "B");
+       string pub_string_approx = to_string(angleToMoveApprox);
+    s_send (publisher, pub_string_approx);
+    //s_send (publisher, i);
+//    this_thread::sleep_for(chrono::milliseconds(1));
+
     char key = cvWaitKey(10);
     if (key == 27) { // ESC
       break;
