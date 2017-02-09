@@ -119,9 +119,18 @@ int main()
       drawContours( origImage, contours, c, color, 2, 8, hierarchy, 0, Point() );
       approxPolyDP( Mat(contours[c]), contours_poly[c], 3, true );
       boundRect[c] = boundingRect( Mat(contours_poly[c]) );
-      
+
       rectangle (origImage, boundRect[c].tl(), boundRect[c].br(), color, 2, 8, 0);
     }
+
+    for(int c = 0; c < boundRect.size();) {
+      if(boundRect[c].area() < MIN_AREA) {
+        boundRect.erase(boundRect.begin()+c);
+        continue;
+      }
+      c++;
+    }
+
     if(boundRect.size() < 2) {
       cout << "no rectangles :(" << endl;
       continue;
