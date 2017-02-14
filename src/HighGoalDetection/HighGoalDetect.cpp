@@ -1,9 +1,15 @@
+#include "zhelpers.hpp"
+#include <zmq.hpp>
+#include <string>
+#include <chrono>
+#include <thread>
 #include <iostream>
 #include <vector>
 #include <opencv2/opencv.hpp>
 #include <math.h>
 
 using namespace cv;
+using namespace zmq;
 using namespace std;
 
 /* IMPORTANT IMPORTANT
@@ -20,16 +26,16 @@ const int BOTTOM_TARGET_HEIGHT = 78; //inches, bottom of tape
 
 //CAMERA SPECS
 const double DIAGONAL_FOV = 68.5; //degrees
-const double HORIZONTAL_FOV = 61.39; //degrees
+const double HORIZONTAL_FOV = 45.0; //degrees was 61.39
 const double VERTICAL_FOV = 36.0; //degrees
 const double FOCAL_LENGTH = 539.0485745586101; //pixelzzz
 const int PIXEL_WIDTH = 640; //pixelzzz
 const int PIXEL_HEIGHT = 480; //pixelzzz
 const double CENTER_LINE = 319.5; //pixelzzz
 //CHECK BELOW
-const double CAMERA_ANGLE = 10; //degrees
-const double CAMERA_HEIGHT = 24; //inches
-const double OFFSET_TO_FRONT = 10; //inches
+const double CAMERA_ANGLE = 0.0; //degrees
+const double CAMERA_HEIGHT = 6.0; //inches
+const double OFFSET_TO_FRONT = 0.0; //inches
 
 string WINDOW_NAME = "lol";
 
@@ -43,18 +49,18 @@ const int UPPER_GREEN_VAL = 255;
 
 const double CAP_SAT = 0.5;
 
-const int MIN_AREA = 2500; //of what, Lili?
+const int MIN_AREA = 2000; //of what, Lili?
 RNG rng(12345);
 
 int main() {
-	cout << "Built with OpenCV B-) " << CV_Version << endl;
+	cout << "Built with OpenCV B-) " << CV_VERSION << endl;
 	Mat image;
 	VideoCapture capture(1);
 	capture.set(CV_CAP_PROP_SATURATION, CAP_SAT);
 
  	if (!capture.isOpened()) {
-    	cout << "!!! Failed to open camera darn :((((( " << endl;
-    	return -1;
+	    	cout << "!!! Failed to open camera darn :((((( " << endl;
+    		return -1;
   	}
 
 	Mat frame;
@@ -94,11 +100,25 @@ int main() {
 			drawContours(cloneImage, contours, c, color, 2, 8, hierarchy, 0, Point() );
 			approxPolyDP( Mat(contours[c]), contours_poly[c], 3, true);
 			boundRect[c] = boundingRect( Mat(contours_poly[c]) );
-			double aspectRatio = (boundRect[c].br().x - boundRect[c].tl().x)/(boundRect[c].br().y - boundRect[c].tl().y);
+			//double aspectRatio = (boundRect[c].br().x - boundRect[c].tl().x)/(boundRect[c].br().y - boundRect[c].tl().y);
 //Be careful for aspectRatio
-			rectangle(origImage, boundRect[c].tl(), boundRect[c].br(), color, 2, 8, 0);
+			rectangle(cloneImage, boundRect[c].tl(), boundRect[c].br(), color, 2, 8, 0);
 
 		}
+		
+		for(int c = 0; c < boundRect.size();) {
+			if (boundRect[c].area() < MIN_AREA) {
+				boundRect.erase(boundRect.begin() + c);
+				continue;
+			}
+			c++;
+		}
+
+		if (boundRect.size() < 2) {
+			cout << "no rectangles :(" << endl;
+			continue;
+		}
+
 		if (boundRect[0].br().y < boundRect[1].tl().y) {
 			upRect = 0;
 			downRect = 1;
@@ -110,24 +130,26 @@ int main() {
 //FINDING ANGLE
 		double angleToMoveApprox;
 		angleToMoveApprox = (centerOfTargets - CENTER_LINE) * HORIZONTAL_FOV / PIXEL_WIDTH;
-		cout << "approxangle" << angleToMoveApprox << endl;
-		cout << "pixel distance for centers" << centerOfTargets - CENTER_LINE << endl;
+		cout << "approx angle: " << angleToMoveApprox << endl;
+		cout << "pixel distance for centers: " << centerOfTargets - CENTER_LINE << endl;
 
 		double angleToMoveAgain;
 		angleToMoveAgain = atan((centerOfTargets - CENTER_LINE) / FOCAL_LENGTH);
 		angleToMoveAgain = (angleToMoveAgain *180/PI); //converts radients to degrees
-		cout "angleToMoveAgain" << angleToMoveAgain << endl;
+		cout << "angleToMoveAgain: " << angleToMoveAgain << endl;
 
 		double distanceToTopOfGoal;
 		double y = boundRect[downRect].br().y + (boundRect[upRect].tl().y - boundRect[downRect].br().y) / 2.0;
 		y = -(2 *y / PIXEL_HEIGHT -1);
-		distanceToTopOfGoal = (TOP_TARGET_HEIGHT - CAMERA_HEIGHT) / tan(y * VERTICAL_FOV / 2.0 + CAMERA_ANGLE * PI / 180);
-		cout << "distance to top goal" << distanceToTopOfGoal << endl;
+		distanceToTopOfGoal = (TOP_TARGET_HEIGHT - CAMERA_HEIGHT) / tan((y * VERTICAL_FOV / 2.0 + CAMERA_ANGLE) * PI / 180);
+		cout << "distance to top goal: " << distanceToTopOfGoal << endl;
+
+		imshow(WINDOW_NAME, cloneImage);
 
 		char key = cvWaitKey (10); 
 		if (key == 27) { //Esc
 			break;
 		}
-		return 0;
 	}
+    return 0;
 }

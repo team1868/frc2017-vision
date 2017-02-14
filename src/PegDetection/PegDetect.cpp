@@ -1,6 +1,3 @@
-//#include "opencv2/imgproc.hpp"
-//#include "opencv2/highgui.hpp"
-//#include "opencv2/videoio.hpp"
 #include "zhelpers.hpp"
 #include <zmq.hpp>
 #include <string>
@@ -17,7 +14,7 @@ using namespace zmq;
 using namespace std;
 
 /* IMPORTANT IMPORTANT
-   RUN v4l2-ctl -d /dev/video1 -c exposure_auto=1 -c exposure_absolute=10
+   RUN v4l2-ctl -d /dev/video1 -c exposure_auto=1 -c exposure_absolute=3
    RUN v4l2-ctl -d /dev/video1 -c white_balance_temperature_auto=0
 */
 #define PI 3.14159265
@@ -30,19 +27,21 @@ const double BOTTOM_BOILER_TARGET_HEIGHT = 78; //inches, bottom of tape
 const double DIST_BETWEEN_PEG_TARGETS = 10.25; //inches, horizontal, outside to outside
 const double TOP_PEG_TARGET_HEIGHT = 15.75; //inches, top of tape
 const double BOTTOM_PEG_TARGET_HEIGHT = 10.75; //inches, bottom of tape
+//const double ASPECT_RATIO_MIN = 0.10; //dimensionless
+//const double ASPECT_RATIO_MAX = 0.70; //dimensionless
 
 //CAMERA SPECS
 const double DIAGONAL_FOV = 68.5; //degrees
-const double HORIZONTAL_FOV = 61.39; //degrees
-const double VERTICAL_FOV = 36.0; //degrees
-const double FOCAL_LENGTH = 539.0485745586101; //pixelzzz
-const int PIXEL_WIDTH = 640; //pixelzzz
-const int PIXEL_HEIGHT = 480; //pixelzzz
-const double CENTER_LINE = 319.5; //pixelzzz
+const double HORIZONTAL_FOV = 45.0; // was 52.034 degrees, originally 61.39, was 35 for 640x480
+const double VERTICAL_FOV = 40.32; //degrees was 35 was 39.2
+const double FOCAL_LENGTH = 539.0485; //1078.09714 539.0485745586101 pixelzzz
+const int PIXEL_WIDTH = 640; // was 1280 pixelzzz was 640
+const int PIXEL_HEIGHT = 480; // was 720 pixelzzz was 480
+const double CENTER_LINE = 319.5; //639.5 pixelzzz was 319.5
 //CHECK BELOW
-const double CAMERA_ANGLE = 10; //degrees
-const double CAMERA_HEIGHT = 24; //inches
-const double OFFSET_TO_FRONT = 10; //inches
+const double CAMERA_ANGLE = 0.0; //degrees
+const double CAMERA_HEIGHT = 6.0; //inches, was 24
+const double OFFSET_TO_FRONT = 0.0; //inches
 
 string WINDOW_NAME = "lol";
 
@@ -63,7 +62,10 @@ int main()
   Mat image;
   VideoCapture capture(1);
   capture.set(CV_CAP_PROP_SATURATION, 0.5);
-  cout << "gr fps " << capture.get(CV_CAP_PROP_FPS);
+//  capture.set(CV_CAP_PROP_FRAME_WIDTH,1280);
+//  capture.set(CV_CAP_PROP_FRAME_HEIGHT,720);
+//  cout << "width " << capture.get(CV_CAP_PROP_FRAME_WIDTH);
+//  cout << "height  " << capture.get(CV_CAP_PROP_FRAME_HEIGHT);
 
   if (!capture.isOpened())
   {
@@ -128,6 +130,11 @@ int main()
         boundRect.erase(boundRect.begin()+c);
         continue;
       }
+      double aspectRatio = (double) boundRect[c].width/((double) boundRect[c].height);
+//      if(aspectRatio > ASPECT_RATIO_MAX || aspectRatio < ASPECT_RATIO_MIN) {
+//        boundRect.erase(boundRect.begin()+c);
+//        continue;
+//      }
       c++;
     }
 
@@ -151,10 +158,10 @@ int main()
     cout << "yawwww " << angleToMoveApprox << endl;
     cout << "pixel distance for centers " << centerOfTargets - CENTER_LINE << endl;
 
-//    double angleToMoveAgain;
-//    angleToMoveAgain = atan((centerOfTargets - CENTER_LINE) / FOCAL_LENGTH);
-//    angleToMoveAgain = angleToMoveAgain * 180 / PI; //CONVERT TO DEGREEZ
-//    cout << "suh " << angleToMoveAgain << endl;
+    double angleToMoveAgain;
+    angleToMoveAgain = atan((centerOfTargets - CENTER_LINE) / FOCAL_LENGTH);
+    angleToMoveAgain = angleToMoveAgain * 180 / PI; //CONVERT TO DEGREEZ
+    cout << "suh " << angleToMoveAgain << endl;
 
     Rect rectForCalc;
     if(boundRect[leftContour].height > boundRect[rightContour].height) {
@@ -165,14 +172,17 @@ int main()
 
     double distanceToPeg;
     double y = rectForCalc.br().y + rectForCalc.height / 2.0;
-    y = -(2 * y / PIXEL_HEIGHT - 1);
-    distanceToPeg = (TOP_PEG_TARGET_HEIGHT - CAMERA_HEIGHT) / tan(y * VERTICAL_FOV / 2.0 + CAMERA_ANGLE * PI / 180);
+//    y = -(2 * y / PIXEL_HEIGHT - 1);
+//    distanceToPeg = (TOP_PEG_TARGET_HEIGHT - CAMERA_HEIGHT) / (tan((y * VERTICAL_FOV / 2.0 + CAMERA_ANGLE) * PI / 180.0));
+    double apparentWidth = boundRect[leftContour].tl().x - boundRect[rightContour].br().x;
+    double distortionFactor = 1.020;
+    distanceToPeg = (DIST_BETWEEN_PEG_TARGETS) / (tan(distortionFactor*apparentWidth/PIXEL_WIDTH*HORIZONTAL_FOV));
     cout << "hallo distanc " << distanceToPeg << endl;
 
-    imshow(WINDOW_NAME, origImage);
+//    imshow(WINDOW_NAME, origImage);
     //imshow("suh", frame);
     //imshow("yooo green", greenRange);
-//    imshow("yooo gray", grayImage);
+    //imshow("yooo gray", grayImage);
 
     //  Write two messages, each with an envelope and content
     s_sendmore (publisher, "A");
