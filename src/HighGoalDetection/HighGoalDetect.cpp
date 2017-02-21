@@ -14,6 +14,8 @@ using namespace std;
 
 /* IMPORTANT IMPORTANT
  RUN v4l2-ctl -d /dev/video2 -c exposure_auto=1 -c exposure_absolute=5 -c brightness=0 -c white_balance_temperature_auto=0
+
+   hello lili is here
  */
 #define PI 3.14159265
 
