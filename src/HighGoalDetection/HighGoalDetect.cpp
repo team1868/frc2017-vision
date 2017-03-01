@@ -14,8 +14,7 @@ using namespace std;
 
 /* IMPORTANT IMPORTANT
  RUN v4l2-ctl -d /dev/video2 -c exposure_auto=1 -c exposure_absolute=5 -c brightness=0 -c white_balance_temperature_auto=0
-
-   hello lili is here
+ MAKE SURE VIDEO STREAM IS CORRECT
  */
 #define PI 3.14159265
 
@@ -26,7 +25,7 @@ const double BOTTOM_TARGET_HEIGHT = 78.0; //inches, bottom of tape
 const double WIDTH_OF_GOAL = 15.0; //inches
 const double HEIGHT_DIFF_OF_TOP_OF_TARGETS = 8.0; // TO SUBTRACT LATER
 const double HEIGHT_OF_TOP_OF_TOP_TARGET = 88.0;
-const double HEIGHT_OF_TOP_OF_BOTTOM_TARGET = 80.0;
+const double HEIGHT_OF_TOP_OF_BOTTOM_TARGET = 80.0; 
 
 //CAMERA SPECS
 const double DIAGONAL_FOV = 68.5; //degrees
@@ -40,7 +39,7 @@ const double VERTICAL_CENTER_LINE = PIXEL_HEIGHT / 2.0 - 0.5;   // 0.5 offset
 
 //CHECK BELOW
 const double CAMERA_ANGLE = 45.0; //45.0; //degrees
-const double CAMERA_HEIGHT = 15.9; //inches
+const double CAMERA_HEIGHT = 22.8; //inches
 //const double OFFSET_TO_FRONT = 0.0; //inches
 
 string WINDOW_NAME = "High Goal Window";
@@ -63,11 +62,12 @@ int main() {
     system("v4l2-ctl -d /dev/video2 -c exposure_auto=1 -c exposure_absolute=5 -c brightness=30");
     cout << "Built with OpenCV B-) " << CV_VERSION << endl;
     Mat image;
-    VideoCapture capture(2);
+    VideoCapture capture(2); //generally use 2
     //  capture.set(CV_CAP_PROP_EXPOSURE, 0.0);
 //    capture.set(CV_CAP_PROP_SATURATION, CAP_SAT);
+    capture.set(CV_CAP_PROP_FOURCC, CV_FOURCC('M','J','P','G'));
     capture.set(CV_CAP_PROP_FRAME_WIDTH, PIXEL_WIDTH);
-    capture.set(CV_CAP_PROP_FRAME_HEIGHT, PIXEL_HEIGHT);
+    capture.set(CV_CAP_PROP_FRAME_HEIGHT, PIXEL_HEIGHT);    
 
     if (!capture.isOpened()) {
         cout << "!!! Failed to open camera darn :((((( " << endl;
@@ -85,31 +85,31 @@ int main() {
         if (!capture.read(frame)) {
             break;
         }
-
+        
         Mat origImage = frame.clone();
         //imshow(WINDOW_NAME, origImage);
         //STARTING PROCESSING
         medianBlur(frame,frame, 5);
-
+        
         Mat hsvImage;
         cvtColor(frame, hsvImage, COLOR_BGR2HSV);
-
+        
         Mat greenRange;
         inRange(hsvImage, Scalar(LOWER_GREEN_HUE, LOWER_GREEN_SAT, LOWER_GREEN_VAL),
                 Scalar(UPPER_GREEN_HUE, UPPER_GREEN_SAT, UPPER_GREEN_VAL),
                 greenRange);
-
+        
         GaussianBlur(greenRange, greenRange, Size(9,9), 2,2);
-
+        
         vector<vector<Point> > contours;
         vector<Vec4i> hierarchy;
         findContours (greenRange, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0,0));
         vector<vector<Point> > contours_poly(contours.size() );
         vector<Rect> boundRect(contours.size() );
-
+        
         int upRect;
         int downRect;
-
+        
         for(int c = 0; c < contours.size(); c++) {
             Scalar color = Scalar(rng.uniform(0,255), rng.uniform(0,255), rng.uniform(0,255) );
             if (contourArea(contours[c]) < MIN_AREA) {
@@ -122,7 +122,7 @@ int main() {
             //Be careful for aspectRatio
             rectangle(origImage, boundRect[c].tl(), boundRect[c].br(), color, 2, 8, 0);
         }
-
+        
         for(int c = 0; c < boundRect.size();) {
             //       cout << "bound rect area: " << boundRect[c].area() << endl;
             if (boundRect[c].area() < MIN_AREA) {
@@ -131,12 +131,12 @@ int main() {
             }
             c++;
         }
-
+        
         if (boundRect.size() < 2) {
             cout << "no rectangles :(" << endl;
             continue;
         }
-
+        
         if (boundRect[0].br().y < boundRect[1].br().y) {
             upRect = 0;
             downRect = 1;
@@ -152,12 +152,12 @@ int main() {
         angleToMoveApprox = (centerOfTargets - HORIZONTAL_CENTER_LINE) * HORIZONTAL_FOV / PIXEL_WIDTH;
         cout << "approx angle: " << angleToMoveApprox << endl;
         cout << "pixel distance for centers: " << centerOfTargets - HORIZONTAL_CENTER_LINE << endl;
-
+        
         double angleToMoveAgain;
         angleToMoveAgain = atan((centerOfTargets - HORIZONTAL_CENTER_LINE) / FOCAL_LENGTH);
         angleToMoveAgain = (angleToMoveAgain *180/PI); //converts radients to degrees
         cout << "angleToMoveAgain: " << angleToMoveAgain << endl;
-       /*
+       /* 
         double distanceToHighGoal;
 	double groundDistance;
         double pixelWidthOfTargets = boundRect[upRect].br().x - boundRect[upRect].tl().x;
@@ -194,9 +194,9 @@ int main() {
 	cout << "groundDistance_Bottom: " << groundDistance_Bottom << endl;
 
 	double groundDistance_Average = (groundDistance_Top + groundDistance_Bottom) / 2.0;
-        imshow(WINDOW_NAME, origImage);
+        //imshow(WINDOW_NAME, origImage);
 	cout << "groundDistance_Average: " << groundDistance_Average << endl;
-
+        
 	s_sendmore(publisher, "ANGLE");
 	string pub_string_approx = to_string(angleToMoveApprox);
 	s_send(publisher, pub_string_approx);
@@ -205,10 +205,9 @@ int main() {
 	string another_string = to_string(groundDistance_Average);
 	s_send(publisher, another_string);
 
-        char key = cvWaitKey (10);
+        char key = cvWaitKey (10); 
         if (key == 27) { //Esc
             break;
         }
     }
-    return 0;
 }
