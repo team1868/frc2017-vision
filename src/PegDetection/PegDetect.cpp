@@ -59,8 +59,10 @@ RNG rng(12345);
 int main()
 {
   cout << "Built with OpenCV B-) " << CV_VERSION << endl;
+  //PUT SYSTEM HERE System();
   Mat image;
   VideoCapture capture(1);
+  capture.set(CV_CAP_PROP_FOURCC, CV_FOURCC('M','J','P','G'));
   capture.set(CV_CAP_PROP_SATURATION, 0.5);
   capture.set(CV_CAP_PROP_FRAME_WIDTH,1280);
   capture.set(CV_CAP_PROP_FRAME_HEIGHT,720);
