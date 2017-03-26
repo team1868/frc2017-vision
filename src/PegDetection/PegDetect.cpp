@@ -27,13 +27,13 @@ const double BOTTOM_BOILER_TARGET_HEIGHT = 78; //inches, bottom of tape
 const double DIST_BETWEEN_PEG_TARGETS = 10.25; //inches, horizontal, outside to outside
 const double TOP_PEG_TARGET_HEIGHT = 15.75; //inches, top of tape
 const double BOTTOM_PEG_TARGET_HEIGHT = 10.75; //inches, bottom of tape
-//const double ASPECT_RATIO_MIN = 0.10; //dimensionless
-//const double ASPECT_RATIO_MAX = 0.70; //dimensionless
+const double ASPECT_RATIO_MIN = 0.25; //dimensionless
+const double ASPECT_RATIO_MAX = 0.70; //dimensionless
 
 //CAMERA SPECS
 const double DIAGONAL_FOV = 68.5; //degrees
-const double HORIZONTAL_FOV = 60.0; //45.0; // was 52.034 degrees, originally 61.39, was 35 for 640x480 45.0 <-- was decnt
-const double VERTICAL_FOV = 40.32; //degrees was 35 was 39.2
+const double HORIZONTAL_FOV = 59.7; //45.0; // was 52.034 degrees, originally 61.39, was 35 for 640x480 45.0 <-- was decnt
+const double VERTICAL_FOV = 33.75; //degrees was 35 was 39.2 was 40.32
 const double FOCAL_LENGTH = 1170.0;  // was 1197.097; //1078.09714 539.0485745586101 pixelzzz 365.704 704.389
 const int PIXEL_WIDTH = 1280; // was 1280 pixelzzz was 640
 const int PIXEL_HEIGHT = 720; // was 720 pixelzzz was 480
@@ -60,14 +60,22 @@ int main()
 {
   cout << "Built with OpenCV B-) " << CV_VERSION << endl;
   //PUT SYSTEM HERE System();
+  system("v4l2-ctl -d /dev/video1 -c exposure_auto=1 -c exposure_absolute=5 -c brightness=30 >/home/ubuntu/SpaceCookies/frc2017-vision/src/logStuff1.txt");
   Mat image;
   VideoCapture capture(1);
-  capture.set(CV_CAP_PROP_FOURCC, CV_FOURCC('M','J','P','G'));
+  cout << "haha" << endl;
+  //capture.set(CV_CAP_PROP_FOURCC, CV_FOURCC('M','J','P','G'));
+//  int codegr = CV_FOURCC('M','J','P','G');  
+//  capture.set(CV_CAP_PROP_FOURCC, codegr);
+  cout << "hahaha" << endl;
   capture.set(CV_CAP_PROP_SATURATION, 0.5);
+  cout << "hahahaha" << endl;
   capture.set(CV_CAP_PROP_FRAME_WIDTH,1280);
   capture.set(CV_CAP_PROP_FRAME_HEIGHT,720);
-//  cout << "width " << capture.get(CV_CAP_PROP_FRAME_WIDTH);
-//  cout << "height  " << capture.get(CV_CAP_PROP_FRAME_HEIGHT);
+  cout << "hahahahaha" << endl;
+//  capture.set(CV_CAP_PROP_FRAME_HEIGHT,720);
+  cout << "width " << capture.get(CV_CAP_PROP_FRAME_WIDTH);
+  cout << "height  " << capture.get(CV_CAP_PROP_FRAME_HEIGHT);
 
   if (!capture.isOpened())
   {
@@ -133,14 +141,15 @@ int main()
         continue;
       }
       double aspectRatio = (double) boundRect[c].width/((double) boundRect[c].height);
-//      if(aspectRatio > ASPECT_RATIO_MAX || aspectRatio < ASPECT_RATIO_MIN) {
-//        boundRect.erase(boundRect.begin()+c);
-//        continue;
-//      }
+      if(aspectRatio > ASPECT_RATIO_MAX || aspectRatio < ASPECT_RATIO_MIN) {
+        boundRect.erase(boundRect.begin()+c);
+        continue;
+      }
       c++;
     }
 
     if(boundRect.size() < 2) {
+//imshow(WINDOW_NAME, origImage);
       cout << "no rectangles :(" << endl;
       continue;
     }
@@ -184,6 +193,13 @@ int main()
 //    distanceToPeg = (DIST_BETWEEN_PEG_TARGETS) / (tan(distortionFactor*apparentWidth/PIXEL_WIDTH*HORIZONTAL_FOV));
     cout << "hallo distanc " << distanceToPeg << endl;
 
+    double lalalaAngleToFrontOfPeg;
+    lalalaAngleToFrontOfPeg = 180/PI * atan((distanceToPeg * sin(angleToMoveApprox * PI / 180))/(distanceToPeg*cos(angleToMoveApprox * PI / 180) - 12));
+    cout << 180/PI * atan(((distanceToPeg * sin(angleToMoveApprox * PI / 180))/distanceToPeg*cos(angleToMoveApprox * PI / 180) - 12)) << endl;
+    cout << "lalalaAngle2front of peg: " << lalalaAngleToFrontOfPeg << endl;
+    cout << "dsintheta " << distanceToPeg * sin(angleToMoveApprox * PI / 180) << endl;
+    cout << "dcostheta " << distanceToPeg*cos(angleToMoveApprox * PI / 180) - 12 << endl;
+
 //    imshow(WINDOW_NAME, origImage);
     //imshow("suh", frame);
     //imshow("yooo green", greenRange);
@@ -192,6 +208,8 @@ int main()
     //  Write two messages, each with an envelope and content
 //    s_sendmore (publisher, "A");
 //    s_send (publisher, "We don't want to see this");
+
+
     s_sendmore (publisher, "ANGLE");
        string pub_string_approx = to_string(angleToMoveApprox);
     s_send (publisher, pub_string_approx);
@@ -199,6 +217,7 @@ int main()
     s_sendmore (publisher, "DISTANCE");
        string another_string = to_string(distanceToPeg);
     s_send (publisher, another_string);
+
     //s_send (publisher, i);
 //    this_thread::sleep_for(chrono::milliseconds(1));
 
