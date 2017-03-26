@@ -1,5 +1,5 @@
-#include "zhelpers.hpp"
-#include <zmq.hpp>
+//#include "zhelpers.hpp"
+//#include <zmq.hpp>
 #include <string>
 #include <chrono>
 #include <thread>
@@ -8,9 +8,12 @@
 #include <vector>
 #include <opencv2/opencv.hpp>
 #include <math.h>
+#include <fstream>
+#include <ctime>
+#include <stdio.h>
 
 using namespace cv;
-using namespace zmq;
+//using namespace zmq;
 using namespace std;
 
 /* IMPORTANT IMPORTANT
@@ -56,8 +59,7 @@ const int UPPER_GREEN_VAL = 255;
 const int MIN_AREA = 2500;
 RNG rng(12345);
 
-int main()
-{
+int main() {
   cout << "Built with OpenCV B-) " << CV_VERSION << endl;
   //PUT SYSTEM HERE System();
   system("v4l2-ctl -d /dev/video1 -c exposure_auto=1 -c exposure_absolute=5 -c brightness=30 >/home/ubuntu/SpaceCookies/frc2017-vision/src/logStuff1.txt");
@@ -77,13 +79,14 @@ int main()
   cout << "width " << capture.get(CV_CAP_PROP_FRAME_WIDTH);
   cout << "height  " << capture.get(CV_CAP_PROP_FRAME_HEIGHT);
 
-  if (!capture.isOpened())
-  {
+  if (!capture.isOpened()) {
     std::cout << "!!! Failed to open camera darn :((((( \n";
     return -1;
   }
 
   Mat frame;
+    
+/*
   //  Prepare our context and publisher
   context_t context(1);
   socket_t publisher(context, ZMQ_PUB);
@@ -93,6 +96,14 @@ int main()
   //int rc = zmq_setsockopt (publisher, ZMQ_SNDHWM, 1);
   //assert (rc == 0);
   publisher.bind("tcp://*:5563");
+*/
+    
+  FILE *stream = popen("sshpass -p '' ssh admin@10.8.68.2 'cat - > /home/lvuser/vision_log.csv'", "w");
+  fputs("Time, Angle, Distance,\n", stream);
+    
+  std::clock_t start;
+  double duration;
+  start = std::clock();
 
   for(;;) {
     if (!capture.read(frame)) {
@@ -194,11 +205,11 @@ int main()
     cout << "hallo distanc " << distanceToPeg << endl;
 
     double lalalaAngleToFrontOfPeg;
-    lalalaAngleToFrontOfPeg = 180/PI * atan((distanceToPeg * sin(angleToMoveApprox * PI / 180))/(distanceToPeg*cos(angleToMoveApprox * PI / 180) - 12));
-    cout << 180/PI * atan(((distanceToPeg * sin(angleToMoveApprox * PI / 180))/distanceToPeg*cos(angleToMoveApprox * PI / 180) - 12)) << endl;
+    lalalaAngleToFrontOfPeg = 180/PI * atan(((distanceToPeg * sin(angleToMoveApprox * PI / 180))/distanceToPeg*cos(angleToMoveApprox * PI / 180) - 12));
+//    cout << 180/PI * atan(((distanceToPeg * sin(angleToMoveApprox * PI / 180))/distanceToPeg*cos(angleToMoveApprox * PI / 180) - 12)) << endl;
     cout << "lalalaAngle2front of peg: " << lalalaAngleToFrontOfPeg << endl;
-    cout << "dsintheta " << distanceToPeg * sin(angleToMoveApprox * PI / 180) << endl;
-    cout << "dcostheta " << distanceToPeg*cos(angleToMoveApprox * PI / 180) - 12 << endl;
+//    cout << "dsintheta " << distanceToPeg * sin(angleToMoveApprox * PI / 180) << endl;
+//    cout << "dcostheta " << distanceToPeg*cos(angleToMoveApprox * PI / 180) - 12 << endl;
 
 //    imshow(WINDOW_NAME, origImage);
     //imshow("suh", frame);
@@ -209,22 +220,32 @@ int main()
 //    s_sendmore (publisher, "A");
 //    s_send (publisher, "We don't want to see this");
 
-
+/* // TAKING ZMQ OUT
     s_sendmore (publisher, "ANGLE");
-       string pub_string_approx = to_string(angleToMoveApprox);
+       //string pub_string_approx = to_string(angleToMoveApprox);
+    string pub_string_approx = to_string(lalalaAngleToFrontOfPeg);
+
     s_send (publisher, pub_string_approx);
 
     s_sendmore (publisher, "DISTANCE");
        string another_string = to_string(distanceToPeg);
     s_send (publisher, another_string);
+*/
 
     //s_send (publisher, i);
 //    this_thread::sleep_for(chrono::milliseconds(1));
+      
+    duration = ( clock() - start ) / (double) CLOCKS_PER_SEC;
+      
+    string output_str = to_string(duration) + ", " + to_string(lalalaAngleToFrontOfPeg) + ", " + to_string(distanceToPeg) + ",\n";
+    fputs(output_str, stream);
 
     char key = cvWaitKey(10);
     if (key == 27) { // ESC
       break;
     }
   }
+    
+  pclose(stream);
   return 0;
 }
