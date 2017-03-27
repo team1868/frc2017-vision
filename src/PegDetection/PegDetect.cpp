@@ -1,5 +1,5 @@
-//#include "zhelpers.hpp"
-//#include <zmq.hpp>
+#include "zhelpers.hpp"
+#include <zmq.hpp>
 #include <string>
 #include <chrono>
 #include <thread>
@@ -13,7 +13,7 @@
 #include <stdio.h>
 
 using namespace cv;
-//using namespace zmq;
+using namespace zmq;
 using namespace std;
 
 /* IMPORTANT IMPORTANT
@@ -62,9 +62,12 @@ RNG rng(12345);
 int main() {
   cout << "Built with OpenCV B-) " << CV_VERSION << endl;
   //PUT SYSTEM HERE System();
-  system("v4l2-ctl -d /dev/video1 -c exposure_auto=1 -c exposure_absolute=5 -c brightness=30 >/home/ubuntu/SpaceCookies/frc2017-vision/src/logStuff1.txt");
+  system("v4l2-ctl -d /dev/video1 -c exposure_auto=1 -c exposure_absolute=5 -c brightness=30");
   Mat image;
   VideoCapture capture(1);
+  while (!capture.isOpened()) {
+    capture.open(1);
+  }
   cout << "haha" << endl;
   //capture.set(CV_CAP_PROP_FOURCC, CV_FOURCC('M','J','P','G'));
 //  int codegr = CV_FOURCC('M','J','P','G');  
@@ -76,17 +79,17 @@ int main() {
   capture.set(CV_CAP_PROP_FRAME_HEIGHT,720);
   cout << "hahahahaha" << endl;
 //  capture.set(CV_CAP_PROP_FRAME_HEIGHT,720);
-  cout << "width " << capture.get(CV_CAP_PROP_FRAME_WIDTH);
-  cout << "height  " << capture.get(CV_CAP_PROP_FRAME_HEIGHT);
+  cout << "width " << capture.get(CV_CAP_PROP_FRAME_WIDTH) << endl;
+  cout << "height  " << capture.get(CV_CAP_PROP_FRAME_HEIGHT) << endl;
 
-  if (!capture.isOpened()) {
-    std::cout << "!!! Failed to open camera darn :((((( \n";
+/*  if (!capture.isOpened()) {
+    cout << "!!! Failed to open camera darn :(((((" << endl;
     return -1;
-  }
+  } */
+  cout << "lalalala hi" << endl;
 
   Mat frame;
-    
-/*
+
   //  Prepare our context and publisher
   context_t context(1);
   socket_t publisher(context, ZMQ_PUB);
@@ -96,16 +99,24 @@ int main() {
   //int rc = zmq_setsockopt (publisher, ZMQ_SNDHWM, 1);
   //assert (rc == 0);
   publisher.bind("tcp://*:5563");
-*/
-    
-  FILE *stream = popen("sshpass -p '' ssh admin@10.8.68.2 'cat - > /home/lvuser/vision_log.csv'", "w");
-  fputs("Time, Angle, Distance,\n", stream);
-    
+
+//   FILE *stream = fopen("/home/ubuntu/SpaceCookies/frc2017-vision/src/PegDetection/vision_log.txt", "w+"); 
+ // FILE *stream = popen("sshpass -p '' ssh admin@roborio-1868-frc.local 'cat - > /tmp/vision_log.csv'", "w");
+ // FILE *stream = popen("ssh admin@roborio-1868-frc.local 'cat - > /home/lvuser/vision_log.csv'", "w");
+ // fputs("Time, Angle, Distance,", stream);
+//  ofstream outputFile("/home/ubuntu/SpaceCookies/frc2017-vision/src/PegDetection/vision_log.txt", std::ios_base::trunc);
+//  outputFile << "hello world" << endl; 
+//  outputFile << "Time, Angle, Distance," << endl;
+   
   std::clock_t start;
   double duration;
   start = std::clock();
+  cout << "bleh" << endl;
 
   for(;;) {
+//ofstream outputFile("/home/ubuntu/SpaceCookies/frc2017-vision/src/PegDetection/vision_log.txt");
+//    ofstream outputFile_SEND("/home/ubuntu/SpaceCookies/frc2017-vision/src/PegDetection/vision_log_SEND.txt");
+  system("v4l2-ctl -d /dev/video1 -c exposure_auto=1 -c exposure_absolute=5 -c brightness=30");
     if (!capture.read(frame)) {
       break;
     }
@@ -160,7 +171,7 @@ int main() {
     }
 
     if(boundRect.size() < 2) {
-//imshow(WINDOW_NAME, origImage);
+      //imshow(WINDOW_NAME, origImage);
       cout << "no rectangles :(" << endl;
       continue;
     }
@@ -205,13 +216,13 @@ int main() {
     cout << "hallo distanc " << distanceToPeg << endl;
 
     double lalalaAngleToFrontOfPeg;
-    lalalaAngleToFrontOfPeg = 180/PI * atan(((distanceToPeg * sin(angleToMoveApprox * PI / 180))/distanceToPeg*cos(angleToMoveApprox * PI / 180) - 12));
+    lalalaAngleToFrontOfPeg = 180/PI * atan((distanceToPeg * sin(angleToMoveApprox * PI / 180))/(distanceToPeg*cos(angleToMoveApprox * PI / 180) - 12));
 //    cout << 180/PI * atan(((distanceToPeg * sin(angleToMoveApprox * PI / 180))/distanceToPeg*cos(angleToMoveApprox * PI / 180) - 12)) << endl;
     cout << "lalalaAngle2front of peg: " << lalalaAngleToFrontOfPeg << endl;
 //    cout << "dsintheta " << distanceToPeg * sin(angleToMoveApprox * PI / 180) << endl;
 //    cout << "dcostheta " << distanceToPeg*cos(angleToMoveApprox * PI / 180) - 12 << endl;
 
-//    imshow(WINDOW_NAME, origImage);
+    //imshow(WINDOW_NAME, origImage);
     //imshow("suh", frame);
     //imshow("yooo green", greenRange);
     //imshow("yooo gray", grayImage);
@@ -220,32 +231,40 @@ int main() {
 //    s_sendmore (publisher, "A");
 //    s_send (publisher, "We don't want to see this");
 
-/* // TAKING ZMQ OUT
-    s_sendmore (publisher, "ANGLE");
-       //string pub_string_approx = to_string(angleToMoveApprox);
-    string pub_string_approx = to_string(lalalaAngleToFrontOfPeg);
+    //s_sendmore (publisher, "ANGLE");
+    string giantString = to_string(angleToMoveApprox) + " " + to_string(distanceToPeg);
+    s_send (publisher, giantString);
+      // string pub_string_approx = to_string(angleToMoveApprox);
+   // string pub_string_approx = to_string(lalalaAngleToFrontOfPeg);
 
-    s_send (publisher, pub_string_approx);
+    //s_sendmore (publisher, "DISTANCE");
+      // string another_string = to_string(distanceToPeg);
+    //s_send (publisher, another_string);
 
-    s_sendmore (publisher, "DISTANCE");
-       string another_string = to_string(distanceToPeg);
-    s_send (publisher, another_string);
-*/
 
     //s_send (publisher, i);
 //    this_thread::sleep_for(chrono::milliseconds(1));
       
     duration = ( clock() - start ) / (double) CLOCKS_PER_SEC;
-      
-    string output_str = to_string(duration) + ", " + to_string(lalalaAngleToFrontOfPeg) + ", " + to_string(distanceToPeg) + ",\n";
-    fputs(output_str, stream);
+ //  outputFile_SEND << duration << ", " << lalalaAngleToFrontOfPeg << ", " << distanceToPeg << "," << endl;
+/*
+   ofstream outputFile("/home/ubuntu/SpaceCookies/frc2017-vision/src/PegDetection/vision_log.txt");
+   outputFile << duration << ", " << angleToMoveApprox << ", " << distanceToPeg << "," << endl;
+   outputFile.close();
+   system("sshpass -p '' scp -pr /home/ubuntu/SpaceCookies/frc2017-vision/src/PegDetection/vision_log.txt admin@10.18.68.2:/tmp/");
+*/
+//    string output_str = "\n" + to_string(duration) + ", " + to_string(lalalaAngleToFrontOfPeg) + ", " + to_string(distanceToPeg) + ",";     // so last line isn't empty
+//   fputs(output_str, stream);
 
     char key = cvWaitKey(10);
-    if (key == 27) { // ESC
+    if (key == 27) { // ESC 
+      //fclose(stream);
       break;
     }
+//    outputFile.close();
   }
-    
-  pclose(stream);
+ // outputFile.close();
+//  fclose(stream);  
+  //pclose(stream);i
   return 0;
 }
