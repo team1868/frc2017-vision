@@ -60,8 +60,10 @@ const int MIN_AREA = 2500;
 RNG rng(12345);
 
 int main() {
+  cout << "test" << endl;
+  sleep(5);
   cout << "Built with OpenCV B-) " << CV_VERSION << endl;
-  //PUT SYSTEM HERE System();
+  
   system("v4l2-ctl -d /dev/video1 -c exposure_auto=1 -c exposure_absolute=5 -c brightness=30");
   Mat image;
   VideoCapture capture(1);
@@ -89,7 +91,7 @@ int main() {
   cout << "lalalala hi" << endl;
 
   Mat frame;
-
+    
   //  Prepare our context and publisher
   context_t context(1);
   socket_t publisher(context, ZMQ_PUB);
@@ -232,10 +234,12 @@ int main() {
 //    s_send (publisher, "We don't want to see this");
 
     //s_sendmore (publisher, "ANGLE");
+//    s_sendmore(publisher, "MESSAGE");
     string giantString = to_string(angleToMoveApprox) + " " + to_string(distanceToPeg);
-    s_send (publisher, giantString);
       // string pub_string_approx = to_string(angleToMoveApprox);
    // string pub_string_approx = to_string(lalalaAngleToFrontOfPeg);
+
+    s_send(publisher, giantString);
 
     //s_sendmore (publisher, "DISTANCE");
       // string another_string = to_string(distanceToPeg);
@@ -245,7 +249,7 @@ int main() {
     //s_send (publisher, i);
 //    this_thread::sleep_for(chrono::milliseconds(1));
       
-    duration = ( clock() - start ) / (double) CLOCKS_PER_SEC;
+   duration = ( clock() - start ) / (double) CLOCKS_PER_SEC;
  //  outputFile_SEND << duration << ", " << lalalaAngleToFrontOfPeg << ", " << distanceToPeg << "," << endl;
 /*
    ofstream outputFile("/home/ubuntu/SpaceCookies/frc2017-vision/src/PegDetection/vision_log.txt");
