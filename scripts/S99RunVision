@@ -19,7 +19,8 @@
 
 case "$1" in
 start)
-/home/ubuntu/SpaceCookies/2017-vision/src/PegDetect/build/PegDetect>/home/ubuntu/SpaceCookies/2017-vision/src/logStuff.txt&
+sleep 15
+/home/ubuntu/SpaceCookies/frc2017-vision/src/PegDetection/build/PegDetect>/home/ubuntu/SpaceCookies/frc2017-vision/src/logStuffz.txt&
    ;;
 stop|restart|reload|force-reload)
     ;;
