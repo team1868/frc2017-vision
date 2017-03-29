@@ -96,11 +96,10 @@ int main() {
   context_t context(1);
   socket_t publisher(context, ZMQ_PUB);
 
-  // cout << publisher.setsockopt(ZMQ_SNDHWM, 1) << endl;
-  // cout << publisher.setsockopt(ZMQ_SNDHWM, 1) << endl;
-  //int rc = zmq_setsockopt (publisher, ZMQ_SNDHWM, 1);
-  //assert (rc == 0);
   publisher.bind("tcp://*:5563");
+
+   int confl = 1;
+   publisher.setsockopt(ZMQ_CONFLATE, &confl, sizeof(confl));
 
 //   FILE *stream = fopen("/home/ubuntu/SpaceCookies/frc2017-vision/src/PegDetection/vision_log.txt", "w+"); 
  // FILE *stream = popen("sshpass -p '' ssh admin@roborio-1868-frc.local 'cat - > /tmp/vision_log.csv'", "w");
@@ -192,13 +191,13 @@ int main() {
 //FINDING ANGLE
     double angleToMoveApprox;
     angleToMoveApprox = (centerOfTargets - CENTER_LINE) * HORIZONTAL_FOV / PIXEL_WIDTH;
-    cout << "yawwww " << angleToMoveApprox << endl;
-    cout << "pixel distance for centers " << centerOfTargets - CENTER_LINE << endl;
+    cout << "yaw: " << angleToMoveApprox << ", ";
+ //   cout << "pixel distance for centers " << centerOfTargets - CENTER_LINE << endl;
 
     double angleToMoveAgain;
     angleToMoveAgain = atan((centerOfTargets - CENTER_LINE) / FOCAL_LENGTH);
     angleToMoveAgain = angleToMoveAgain * 180 / PI; //CONVERT TO DEGREEZ
-    cout << "suh " << angleToMoveAgain << endl;
+  //  cout << "suh " << angleToMoveAgain << endl;
 
     Rect rectForCalc;
     if(boundRect[leftContour].height > boundRect[rightContour].height) {
@@ -215,12 +214,12 @@ int main() {
     distanceToPeg = DIST_BETWEEN_PEG_TARGETS * FOCAL_LENGTH / apparentWidth;
 //    double distortionFactor = 1.020;
 //    distanceToPeg = (DIST_BETWEEN_PEG_TARGETS) / (tan(distortionFactor*apparentWidth/PIXEL_WIDTH*HORIZONTAL_FOV));
-    cout << "hallo distanc " << distanceToPeg << endl;
+    cout << "distance: " << distanceToPeg << ", ";
 
     double lalalaAngleToFrontOfPeg;
     lalalaAngleToFrontOfPeg = 180/PI * atan((distanceToPeg * sin(angleToMoveApprox * PI / 180))/(distanceToPeg*cos(angleToMoveApprox * PI / 180) - 12));
 //    cout << 180/PI * atan(((distanceToPeg * sin(angleToMoveApprox * PI / 180))/distanceToPeg*cos(angleToMoveApprox * PI / 180) - 12)) << endl;
-    cout << "lalalaAngle2front of peg: " << lalalaAngleToFrontOfPeg << endl;
+    cout << "angleToFrontOfPeg: " << lalalaAngleToFrontOfPeg << ", " << endl;
 //    cout << "dsintheta " << distanceToPeg * sin(angleToMoveApprox * PI / 180) << endl;
 //    cout << "dcostheta " << distanceToPeg*cos(angleToMoveApprox * PI / 180) - 12 << endl;
 
@@ -269,6 +268,6 @@ int main() {
   }
  // outputFile.close();
 //  fclose(stream);  
-  //pclose(stream);i
+  //pclose(stream);
   return 0;
 }
