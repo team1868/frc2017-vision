@@ -117,7 +117,7 @@ int main() {
   for(;;) {
 //ofstream outputFile("/home/ubuntu/SpaceCookies/frc2017-vision/src/PegDetection/vision_log.txt");
 //    ofstream outputFile_SEND("/home/ubuntu/SpaceCookies/frc2017-vision/src/PegDetection/vision_log_SEND.txt");
-  system("v4l2-ctl -d /dev/video1 -c exposure_auto=1 -c exposure_absolute=5 -c brightness=30");
+    system("v4l2-ctl -d /dev/video1 -c exposure_auto=1 -c exposure_absolute=5 -c brightness=30");
     if (!capture.read(frame)) {
       break;
     }
@@ -219,7 +219,7 @@ int main() {
     double lalalaAngleToFrontOfPeg;
     lalalaAngleToFrontOfPeg = 180/PI * atan((distanceToPeg * sin(angleToMoveApprox * PI / 180))/(distanceToPeg*cos(angleToMoveApprox * PI / 180) - 12));
 //    cout << 180/PI * atan(((distanceToPeg * sin(angleToMoveApprox * PI / 180))/distanceToPeg*cos(angleToMoveApprox * PI / 180) - 12)) << endl;
-    cout << "angleToFrontOfPeg: " << lalalaAngleToFrontOfPeg << ", " << endl;
+    cout << "angleToFrontOfPeg: " << lalalaAngleToFrontOfPeg << ", ";
 //    cout << "dsintheta " << distanceToPeg * sin(angleToMoveApprox * PI / 180) << endl;
 //    cout << "dcostheta " << distanceToPeg*cos(angleToMoveApprox * PI / 180) - 12 << endl;
 
@@ -234,7 +234,11 @@ int main() {
 
     //s_sendmore (publisher, "ANGLE");
 //    s_sendmore(publisher, "MESSAGE");
-    string giantString = to_string(angleToMoveApprox) + " " + to_string(distanceToPeg);
+    double offset = 6.0;
+    double robotAngleToPeg = 180 / PI * atan((distanceToPeg * sin(PI / 180 * angleToMoveApprox)) / (distanceToPeg * cos(PI / 180 * angleToMoveApprox) + offset));
+    cout << "robotAngleToPeg: " << robotAngleToPeg << ", " << endl;
+
+    string giantString = to_string(robotAngleToPeg) + " " + to_string(distanceToPeg);
       // string pub_string_approx = to_string(angleToMoveApprox);
    // string pub_string_approx = to_string(lalalaAngleToFrontOfPeg);
 
@@ -246,7 +250,6 @@ int main() {
 
 
     //s_send (publisher, i);
-//    this_thread::sleep_for(chrono::milliseconds(1));
       
    duration = ( clock() - start ) / (double) CLOCKS_PER_SEC;
  //  outputFile_SEND << duration << ", " << lalalaAngleToFrontOfPeg << ", " << distanceToPeg << "," << endl;
@@ -264,6 +267,9 @@ int main() {
       //fclose(stream);
       break;
     }
+
+    this_thread::sleep_for(chrono::milliseconds(16));
+//    sleep(0);
 //    outputFile.close();
   }
  // outputFile.close();
