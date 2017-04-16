@@ -61,10 +61,11 @@ RNG rng(12345);
 
 int main() {
   cout << "test" << endl;
-  sleep(5);
+  sleep(10);
   cout << "Built with OpenCV B-) " << CV_VERSION << endl;
   
   system("v4l2-ctl -d /dev/video1 -c exposure_auto=1 -c exposure_absolute=5 -c brightness=30");
+  cout << "blah blah system" << endl;
   Mat image;
   VideoCapture capture(1);
   while (!capture.isOpened()) {
@@ -234,7 +235,7 @@ int main() {
 
     //s_sendmore (publisher, "ANGLE");
 //    s_sendmore(publisher, "MESSAGE");
-    double offset = 6.0;
+    double offset = 4.0;
     double robotAngleToPeg = 180 / PI * atan((distanceToPeg * sin(PI / 180 * angleToMoveApprox)) / (distanceToPeg * cos(PI / 180 * angleToMoveApprox) + offset));
     cout << "robotAngleToPeg: " << robotAngleToPeg << ", " << endl;
 
