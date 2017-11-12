@@ -63,37 +63,31 @@ int main() {
   cout << "test" << endl;
   sleep(10);
   cout << "Built with OpenCV B-) " << CV_VERSION << endl;
-  
+
   system("v4l2-ctl -d /dev/video1 -c exposure_auto=1 -c exposure_absolute=5 -c brightness=30");
   cout << "blah blah system" << endl;
   Mat image;
   VideoCapture capture(1);
+// CHECKS IF CAMERA IS OPEN
   while (!capture.isOpened()) {
     capture.open(1);
   }
   cout << "haha" << endl;
-  //capture.set(CV_CAP_PROP_FOURCC, CV_FOURCC('M','J','P','G'));
-//  int codegr = CV_FOURCC('M','J','P','G');  
-//  capture.set(CV_CAP_PROP_FOURCC, codegr);
   cout << "hahaha" << endl;
   capture.set(CV_CAP_PROP_SATURATION, 0.5);
   cout << "hahahaha" << endl;
   capture.set(CV_CAP_PROP_FRAME_WIDTH,1280);
   capture.set(CV_CAP_PROP_FRAME_HEIGHT,720);
   cout << "hahahahaha" << endl;
-//  capture.set(CV_CAP_PROP_FRAME_HEIGHT,720);
+
   cout << "width " << capture.get(CV_CAP_PROP_FRAME_WIDTH) << endl;
   cout << "height  " << capture.get(CV_CAP_PROP_FRAME_HEIGHT) << endl;
 
-/*  if (!capture.isOpened()) {
-    cout << "!!! Failed to open camera darn :(((((" << endl;
-    return -1;
-  } */
   cout << "lalalala hi" << endl;
 
   Mat frame;
-    
-  //  Prepare our context and publisher
+
+// PREPARE CONTEXT AND PUBLISHER
   context_t context(1);
   socket_t publisher(context, ZMQ_PUB);
 
@@ -102,32 +96,27 @@ int main() {
    int confl = 1;
    publisher.setsockopt(ZMQ_CONFLATE, &confl, sizeof(confl));
 
-//   FILE *stream = fopen("/home/ubuntu/SpaceCookies/frc2017-vision/src/PegDetection/vision_log.txt", "w+"); 
- // FILE *stream = popen("sshpass -p '' ssh admin@roborio-1868-frc.local 'cat - > /tmp/vision_log.csv'", "w");
- // FILE *stream = popen("ssh admin@roborio-1868-frc.local 'cat - > /home/lvuser/vision_log.csv'", "w");
- // fputs("Time, Angle, Distance,", stream);
-//  ofstream outputFile("/home/ubuntu/SpaceCookies/frc2017-vision/src/PegDetection/vision_log.txt", std::ios_base::trunc);
-//  outputFile << "hello world" << endl; 
-//  outputFile << "Time, Angle, Distance," << endl;
-   
   std::clock_t start;
   double duration;
   start = std::clock();
   cout << "bleh" << endl;
 
   for(;;) {
-//ofstream outputFile("/home/ubuntu/SpaceCookies/frc2017-vision/src/PegDetection/vision_log.txt");
-//    ofstream outputFile_SEND("/home/ubuntu/SpaceCookies/frc2017-vision/src/PegDetection/vision_log_SEND.txt");
+    // SET EXPOSURE AND BRIGHTNESS OF CAMERA
     system("v4l2-ctl -d /dev/video1 -c exposure_auto=1 -c exposure_absolute=5 -c brightness=30");
     if (!capture.read(frame)) {
       break;
     }
+
+    // START FILTERING
     Mat origImage = frame.clone();
     medianBlur(frame, frame, 5);
 
     Mat hsvImage;
+    // CONVERT FROM RGB TO HSV
     cvtColor(frame, hsvImage, COLOR_BGR2HSV);
 
+    // TAKES THE PARTS OF THE IMAGE THAT ARE IN THE COLOR RANGE
     Mat greenRange;
     inRange(hsvImage, Scalar(LOWER_GREEN_HUE, LOWER_GREEN_SAT, LOWER_GREEN_VAL),
                       Scalar(UPPER_GREEN_HUE, UPPER_GREEN_SAT, UPPER_GREEN_VAL),
@@ -147,6 +136,7 @@ int main() {
     int leftContour;
     int rightContour;
 
+    // FILTERING CONTOURS
     for(int c = 0; c < contours.size(); c++) {
       Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
       if(contourArea(contours[c]) < MIN_AREA) {
@@ -173,7 +163,6 @@ int main() {
     }
 
     if(boundRect.size() < 2) {
-      //imshow(WINDOW_NAME, origImage);
       cout << "no rectangles :(" << endl;
       continue;
     }
@@ -185,20 +174,16 @@ int main() {
       leftContour = 1;
       rightContour = 0;
     }
-//    double centerOfTargets = (boundRect[leftContour].tl().x + boundRect[rightContour].br().x) / 2.0;
-//    double centerOfTargets = (((boundRect[leftContour].bl().x + boundRect[leftContour].br().x) / 2.0) + ((boundRect[rightContour].bl().x + boundRect[rightContour].br().x))/2.0;
     double centerOfTargets = (((boundRect[leftContour].tl().x + boundRect[leftContour].br().x) / 2.0) + ((boundRect[rightContour].tl().x + boundRect[rightContour].br().x) / 2.0)) / 2.0;
 
 //FINDING ANGLE
     double angleToMoveApprox;
     angleToMoveApprox = (centerOfTargets - CENTER_LINE) * HORIZONTAL_FOV / PIXEL_WIDTH;
     cout << "yaw: " << angleToMoveApprox << ", ";
- //   cout << "pixel distance for centers " << centerOfTargets - CENTER_LINE << endl;
 
     double angleToMoveAgain;
     angleToMoveAgain = atan((centerOfTargets - CENTER_LINE) / FOCAL_LENGTH);
-    angleToMoveAgain = angleToMoveAgain * 180 / PI; //CONVERT TO DEGREEZ
-  //  cout << "suh " << angleToMoveAgain << endl;
+    angleToMoveAgain = angleToMoveAgain * 180 / PI;
 
     Rect rectForCalc;
     if(boundRect[leftContour].height > boundRect[rightContour].height) {
@@ -209,72 +194,30 @@ int main() {
 
     double distanceToPeg;
     double y = rectForCalc.br().y + rectForCalc.height / 2.0;
-//    y = -(2 * y / PIXEL_HEIGHT - 1);
-//    distanceToPeg = (TOP_PEG_TARGET_HEIGHT - CAMERA_HEIGHT) / (tan((y * VERTICAL_FOV / 2.0 + CAMERA_ANGLE) * PI / 180.0));
     double apparentWidth = boundRect[rightContour].br().x - boundRect[leftContour].tl().x;
     distanceToPeg = DIST_BETWEEN_PEG_TARGETS * FOCAL_LENGTH / apparentWidth;
-//    double distortionFactor = 1.020;
-//    distanceToPeg = (DIST_BETWEEN_PEG_TARGETS) / (tan(distortionFactor*apparentWidth/PIXEL_WIDTH*HORIZONTAL_FOV));
     cout << "distance: " << distanceToPeg << ", ";
 
     double lalalaAngleToFrontOfPeg;
     lalalaAngleToFrontOfPeg = 180/PI * atan((distanceToPeg * sin(angleToMoveApprox * PI / 180))/(distanceToPeg*cos(angleToMoveApprox * PI / 180) - 12));
-//    cout << 180/PI * atan(((distanceToPeg * sin(angleToMoveApprox * PI / 180))/distanceToPeg*cos(angleToMoveApprox * PI / 180) - 12)) << endl;
     cout << "angleToFrontOfPeg: " << lalalaAngleToFrontOfPeg << ", ";
-//    cout << "dsintheta " << distanceToPeg * sin(angleToMoveApprox * PI / 180) << endl;
-//    cout << "dcostheta " << distanceToPeg*cos(angleToMoveApprox * PI / 180) - 12 << endl;
 
-    //imshow(WINDOW_NAME, origImage);
-    //imshow("suh", frame);
-    //imshow("yooo green", greenRange);
-    //imshow("yooo gray", grayImage);
-
-    //  Write two messages, each with an envelope and content
-//    s_sendmore (publisher, "A");
-//    s_send (publisher, "We don't want to see this");
-
-    //s_sendmore (publisher, "ANGLE");
-//    s_sendmore(publisher, "MESSAGE");
     double offset = 4.0;
     double robotAngleToPeg = 180 / PI * atan((distanceToPeg * sin(PI / 180 * angleToMoveApprox)) / (distanceToPeg * cos(PI / 180 * angleToMoveApprox) + offset));
     cout << "robotAngleToPeg: " << robotAngleToPeg << ", " << endl;
 
     string giantString = to_string(robotAngleToPeg) + " " + to_string(distanceToPeg);
-      // string pub_string_approx = to_string(angleToMoveApprox);
-   // string pub_string_approx = to_string(lalalaAngleToFrontOfPeg);
 
     s_send(publisher, giantString);
 
-    //s_sendmore (publisher, "DISTANCE");
-      // string another_string = to_string(distanceToPeg);
-    //s_send (publisher, another_string);
-
-
-    //s_send (publisher, i);
-      
    duration = ( clock() - start ) / (double) CLOCKS_PER_SEC;
- //  outputFile_SEND << duration << ", " << lalalaAngleToFrontOfPeg << ", " << distanceToPeg << "," << endl;
-/*
-   ofstream outputFile("/home/ubuntu/SpaceCookies/frc2017-vision/src/PegDetection/vision_log.txt");
-   outputFile << duration << ", " << angleToMoveApprox << ", " << distanceToPeg << "," << endl;
-   outputFile.close();
-   system("sshpass -p '' scp -pr /home/ubuntu/SpaceCookies/frc2017-vision/src/PegDetection/vision_log.txt admin@10.18.68.2:/tmp/");
-*/
-//    string output_str = "\n" + to_string(duration) + ", " + to_string(lalalaAngleToFrontOfPeg) + ", " + to_string(distanceToPeg) + ",";     // so last line isn't empty
-//   fputs(output_str, stream);
 
     char key = cvWaitKey(10);
     if (key == 27) { // ESC 
-      //fclose(stream);
       break;
     }
 
     this_thread::sleep_for(chrono::milliseconds(16));
-//    sleep(0);
-//    outputFile.close();
   }
- // outputFile.close();
-//  fclose(stream);  
-  //pclose(stream);
   return 0;
 }
